@@ -3723,46 +3723,46 @@ function drawPattern(ctx, width, height, slide) {
     ctx.strokeStyle = slide.textColor;
     ctx.fillStyle = slide.textColor;
     
-    if (pattern.name === 'Точки') {
-        for (let x = 0; x < width; x += scale) {
-            for (let y = 0; y < height; y += scale) {
-                ctx.beginPath();
-                ctx.arc(x, y, scale * 0.05, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    } else if (pattern.name === 'Линии') {
-        ctx.lineWidth = scale * 0.05;
+ if (pattern.name === 'Точки') {
+    const dotSize = scale * 0.05;
+    for (let x = 0; x < width; x += scale) {
         for (let y = 0; y < height; y += scale) {
             ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
-        }
-    } else if (pattern.name === 'Сетка') {
-        ctx.lineWidth = scale * 0.05;
-        for (let x = 0; x < width; x += scale) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
-            ctx.stroke();
-        }
-        for (let y = 0; y < height; y += scale) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(width, y);
-            ctx.stroke();
-        }
-    } else if (pattern.name === 'Вертикаль') {
-        ctx.lineWidth = scale;
-        for (let x = 0; x < width; x += scale) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, height);
-            ctx.stroke();
+            ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
-    
+} else if (pattern.name === 'Линии') {
+    ctx.lineWidth = 1;
+    for (let y = 0; y < height; y += scale) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+} else if (pattern.name === 'Сетка') {
+    ctx.lineWidth = 1;
+    for (let x = 0; x < width; x += scale) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < height; y += scale) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+} else if (pattern.name === 'Вертикаль') {
+    ctx.lineWidth = 2;
+    for (let x = 0; x < width; x += scale) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+}  
     ctx.restore();
 }
 
@@ -4006,32 +4006,33 @@ title.style.fontSize = `${slide.titleSize * scale}px`; // С scale
         
     } else {
         title.style.display = 'none';
+         title.style.marginBottom = '0px'; 
     }
 
-    const textHorizontal = slide.textAlignment?.horizontal || 'left';
-    if (slide.text && slide.text.trim()) {
+  const textHorizontal = slide.textAlignment?.horizontal || 'left';
+if (slide.text && slide.text.trim()) {
     text.style.display = 'block';
     text.textContent = slide.text;
-    text.style.fontSize = `${slide.textSize * scale}px`; // С scale
-        text.style.color = slide.textColor;
-        text.style.fontFamily = `'${slide.textFont}', sans-serif`;
-        text.style.fontWeight = slide.textBold ? '700' : '400';
-        text.style.fontStyle = slide.textItalic ? 'italic' : 'normal';
-        text.style.lineHeight = slide.textLineHeight;
-        text.style.whiteSpace = 'pre-wrap';
-        text.style.textAlign = textHorizontal;
-    } else {
-        text.style.display = 'none';
-    }
+    text.style.fontSize = `${slide.textSize * scale}px`;
+    text.style.color = slide.textColor;
+    text.style.fontFamily = `'${slide.textFont}', sans-serif`;
+    text.style.fontWeight = slide.textBold ? '700' : '400';
+    text.style.fontStyle = slide.textItalic ? 'italic' : 'normal';
+    text.style.lineHeight = slide.textLineHeight;
+    text.style.whiteSpace = 'pre-wrap';
+    text.style.textAlign = textHorizontal;
+} else {
+    text.style.display = 'none';
+}
 
     if (slide.textShadow) {
-        const shadow = `${slide.shadowOffset}px ${slide.shadowOffset}px ${slide.shadowBlur}px ${slide.shadowColor}`;
-        if (shouldShowTitle) title.style.textShadow = shadow;
-        text.style.textShadow = shadow;
-    } else {
-        title.style.textShadow = 'none';
-        text.style.textShadow = 'none';
-    }
+    const shadow = `${slide.shadowOffset * scale}px ${slide.shadowOffset * scale}px ${slide.shadowBlur * scale}px ${slide.shadowColor}`;
+    if (shouldShowTitle) title.style.textShadow = shadow;
+    text.style.textShadow = shadow;
+} else {
+    title.style.textShadow = 'none';
+    text.style.textShadow = 'none';
+}
 }
 
 function wrapText(ctx, text, maxWidth) {
