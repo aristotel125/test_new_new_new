@@ -115,7 +115,7 @@
                     </label>
                 </div>
 
-                <div class="pattern-section">
+               <div class="pattern-section" style="display: none;">
                     <div class="toggle-section">
                         <div class="toggle-header" onclick="togglePatternSection()">
                             <span style="font-weight: 600;">Добавить узор</span>
@@ -1038,22 +1038,26 @@
             justify-content: center;
         }
 
-        .slide-title{
-            font-size: 32px; 
-            font-weight: 700; 
-                margin: 0;
-            line-height: 1.2; 
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
+       .slide-title{
+    font-size: 32px; 
+    font-weight: 700; 
+    margin: 0;
+    line-height: 1.2; 
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-word;  /* ДОБАВИТЬ */
+    overflow-wrap: break-word;  /* ДОБАВИТЬ */
+}
 
-        .slide-text{
-            font-size: 16px; 
-            line-height: 1.5; 
-            word-wrap: break-word;
-            white-space: pre-wrap;
-                margin: 0;
-        }
+.slide-text{
+    font-size: 16px; 
+    line-height: 1.5; 
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    margin: 0;
+    word-break: break-word;  /* ДОБАВИТЬ */
+    overflow-wrap: break-word;  /* ДОБАВИТЬ */
+}
 
        
 
@@ -3039,7 +3043,12 @@ function updatePatternOpacity(value) {
 function updatePatternScale(value) {
     document.getElementById('scaleValue').textContent = `${value}px`;
     slides[currentSlide].patternScale = value;
-    renderSlide();
+    
+    // Ждём, пока DOM обновится, потом рендерим
+    requestAnimationFrame(() => {
+        renderSlide();
+    });
+    
     if (window.autosaveTouch) window.autosaveTouch();
 }
 
@@ -3732,15 +3741,16 @@ function drawPattern(ctx, width, height, slide) {
     const pattern = patterns[slide.pattern];
     const scale = slide.patternScale;
     
+    // Масштабируем толщину линий и размер точек пропорционально canvas
+    const lineScale = width / 1080; // Для 1080px это будет 1.0
+    
     ctx.save();
     ctx.globalAlpha = slide.patternOpacity;
     ctx.strokeStyle = slide.textColor;
     ctx.fillStyle = slide.textColor;
-    ctx.lineWidth = 1;
     
     if (pattern.name === 'Точки') {
-        // Размер точки = 1px (как в CSS)
-        const dotSize = 1;
+        const dotSize = 1 * lineScale;
         const spacing = scale;
         
         for (let y = 0; y < height; y += spacing) {
@@ -3752,7 +3762,7 @@ function drawPattern(ctx, width, height, slide) {
         }
         
     } else if (pattern.name === 'Линии') {
-        // Горизонтальные линии толщиной 1px с интервалом scale
+        ctx.lineWidth = 1 * lineScale;
         for (let y = 0; y < height; y += scale) {
             ctx.beginPath();
             ctx.moveTo(0, y);
@@ -3761,7 +3771,7 @@ function drawPattern(ctx, width, height, slide) {
         }
         
     } else if (pattern.name === 'Сетка') {
-        // Вертикальные и горизонтальные линии толщиной 1px
+        ctx.lineWidth = 1 * lineScale;
         for (let x = 0; x < width; x += scale) {
             ctx.beginPath();
             ctx.moveTo(x, 0);
@@ -3776,8 +3786,7 @@ function drawPattern(ctx, width, height, slide) {
         }
         
     } else if (pattern.name === 'Вертикаль') {
-        // Вертикальные линии толщиной 2px (как в CSS)
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * lineScale;
         for (let x = 0; x < width; x += scale) {
             ctx.beginPath();
             ctx.moveTo(x, 0);
@@ -3976,14 +3985,17 @@ function renderSlide() {
         bg.style.backgroundColor = slide.bgColor;
     }
 
- if (slide.pattern !== null) {
+if (slide.pattern !== null) {
     const patternData = patterns[slide.pattern];
     if (patternData && patternData.css) {
         pattern.style.backgroundImage = patternData.css;
         pattern.style.color = slide.textColor;
         pattern.style.opacity = slide.patternOpacity;
-        // ИСПРАВЛЕНИЕ: применяем scale для превью
-        pattern.style.backgroundSize = `${slide.patternScale * scale}px ${slide.patternScale * scale}px`;
+        
+        // Пересчитываем scale для актуального значения
+        const currentScale = canvas.offsetWidth / 1080;
+        const scaledPatternSize = slide.patternScale * currentScale;
+        pattern.style.backgroundSize = `${scaledPatternSize}px ${scaledPatternSize}px`;
         pattern.style.display = 'block';
     } else {
         pattern.style.display = 'none';
@@ -4067,7 +4079,6 @@ if (slide.text && slide.text.trim()) {
 
 function wrapText(ctx, text, maxWidth) {
     const normalizedText = text;
-    
     const paragraphs = normalizedText.split('\n');
     const lines = [];
     
@@ -4085,8 +4096,50 @@ function wrapText(ctx, text, maxWidth) {
             const metrics = ctx.measureText(testLine);
             
             if (metrics.width > maxWidth && currentLine) {
+                // Строка не влезает, переносим
                 lines.push(currentLine);
-                currentLine = word;
+                
+                // Проверяем, влезает ли само слово
+                const wordMetrics = ctx.measureText(word);
+                
+                if (wordMetrics.width > maxWidth) {
+                    // Слово не влезает целиком
+                    if (word.includes('-')) {
+                        // Есть дефис → разбиваем по дефису
+                        const parts = word.split('-');
+                        currentLine = '';
+                        
+                        parts.forEach((part, i) => {
+                            const isLast = i === parts.length - 1;
+                            const withDash = isLast ? part : part + '-';
+                            const testPart = currentLine + withDash;
+                            
+                            if (ctx.measureText(testPart).width > maxWidth && currentLine) {
+                                lines.push(currentLine);
+                                currentLine = withDash;
+                            } else {
+                                currentLine = testPart;
+                            }
+                        });
+                    } else {
+                        // Нет дефиса → принудительный разрыв по символам
+                        currentLine = '';
+                        for (let i = 0; i < word.length; i++) {
+                            const char = word[i];
+                            const testChar = currentLine + char;
+                            
+                            if (ctx.measureText(testChar).width > maxWidth && currentLine) {
+                                lines.push(currentLine);
+                                currentLine = char;
+                            } else {
+                                currentLine = testChar;
+                            }
+                        }
+                    }
+                } else {
+                    // Слово влезает → переносим целиком
+                    currentLine = word;
+                }
             } else {
                 currentLine = testLine;
             }
@@ -4095,8 +4148,6 @@ function wrapText(ctx, text, maxWidth) {
         if (currentLine) {
             lines.push(currentLine);
         }
-        
-        
     });
     
     return lines;
