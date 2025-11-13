@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>rezerv-Carousel Designer</title>
+    <title>MISHA_REZERV</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Oswald:wght@400;700&family=Lato:ital,wght@0,400;0,700;1,400;1,700&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -15,7 +15,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Карусельник-rezerv</h1>
+            <h1>MISHA_REZERV</h1>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-delete" onclick="confirmDeleteSlide()">&#128465; Удалить</button>
                 <button class="btn-download" onclick="toggleDownloadMenu()">⬇️ Скачать</button>
@@ -4593,7 +4593,7 @@ content.style.paddingRight = (canvas.offsetWidth * horizontalPaddingPercent) + '
         title.style.fontFamily = `'${slide.titleFont}', sans-serif`;
         title.style.fontWeight = slide.titleBold ? '700' : '400';
         title.style.fontStyle = slide.titleItalic ? 'italic' : 'normal';
-        title.style.lineHeight = slide.titleLineHeight;
+        title.style.lineHeight = (slide.titleLineHeight * slide.titleSize * scale) + 'px';
         title.style.whiteSpace = 'pre-wrap';
         title.style.textAlign = titleHorizontal;
         title.style.marginBottom = `${53 * scale}px`;
@@ -4611,7 +4611,7 @@ content.style.paddingRight = (canvas.offsetWidth * horizontalPaddingPercent) + '
         text.style.fontFamily = `'${slide.textFont}', sans-serif`;
         text.style.fontWeight = slide.textBold ? '700' : '400';
         text.style.fontStyle = slide.textItalic ? 'italic' : 'normal';
-        text.style.lineHeight = slide.textLineHeight;
+        text.style.lineHeight = (slide.textLineHeight * slide.textSize * scale) + 'px';
         text.style.whiteSpace = 'pre-wrap';
         text.style.textAlign = textHorizontal;
     } else {
